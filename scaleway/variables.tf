@@ -35,6 +35,10 @@ variable "security_group" {
   default=""
 }
 
+variable "use_key_file" {
+  default=false
+}
+
 variable "key_file" {
   default=""
 }

@@ -51,85 +51,11 @@ data "scaleway_bootscript" "mainline" {
   name_filter  = "mainline 4.9.49"
 }
 
-resource "scaleway_server" "swarm_manager" {
-  count = "${var.manager_count}"
-
-  name  = "${var.name} docker swarm manager ${count.index}"
-  type  = "${var.type}"
-
-  image = "${data.scaleway_image.debian.id}"
-  bootscript = "${data.scaleway_bootscript.mainline.id}"
-
-  tags  = "${concat(local.tags,local.manager_tags)}"
-
-  enable_ipv6=true
-  dynamic_ip_required=true
-
-  security_group="${var.security_group}"
-
-  #TODO: Additional Volumes
+output "docker-env" {
+  value =<<EOF
+export DOCKER_HOST=${scaleway_server.swarm_manager.0.public_ip}:2376
+export DOCKER_TLS_VERIFY=1
+export DOCKER_CERT_PATH=keys/${var.name}/${scaleway_server.swarm_manager.0.public_ip}
+EOF
 }
 
-resource "scaleway_server" "swarm_worker" {
-  count = "${var.worker_count}"
-
-  name  = "${var.name} docker swarm worker ${count.index}"
-  type  = "${var.type}"
-
-  image = "${data.scaleway_image.debian.id}"
-  bootscript = "${data.scaleway_bootscript.mainline.id}"
-
-  tags  = "${concat(local.tags,local.worker_tags)}"
-
-  enable_ipv6=true
-  dynamic_ip_required=true
-
-  security_group="${var.security_group}"
-
-  #TODO: Additional Volumes
-}
-
-resource "null_resource" "swarm_setup" {
-  depends_on=["scaleway_server.swarm_manager","scaleway_server.swarm_worker"]
-
-  count = "${scaleway_server.swarm_manager.count + scaleway_server.swarm_worker.count}"
-
-  triggers = {
-    manager_ids = "${join(",",scaleway_server.swarm_manager.*.id)}"
-    workers_ids = "${join(",",scaleway_server.swarm_worker.*.id)}"
-  }
-
-  connection  {
-    type = "ssh"
-    user = "root"
-    #private_key = "${file(var.key_file)}"
-    agent = "${var.ssh_agent}"
-    host = "${ count.index < var.manager_count
-                ? element(scaleway_server.swarm_manager.*.public_ip, count.index) 
-                : element(scaleway_server.swarm_worker.*.public_ip, (count.index>0?count.index:1) - var.manager_count) }"
-  }
-
-  provisioner "remote-exec" {
-    inline =[
-        "sleep 10"
-       ,"echo ${count.index} > /tmp/index"
-       ,"echo ${var.label} > /tmp/label"
-       ,"echo ${count.index < var.manager_count?"manager":"worker"}> /tmp/role"
-       ,"echo '${var.join_existing_swarm?var.existing_swarm_manager:scaleway_server.swarm_manager.0.private_ip} swarm_manager' | sudo tee -a /etc/hosts"
-    ]
-  }
-
-  provisioner "remote-exec" {
-    script = "${path.module}/../scripts/limits.sh"
-  }
-
-  # TODO: Docker TLS
-
-  provisioner "remote-exec" {
-    script = "${path.module}/../scripts/install-docker.sh"
-  }
-
-  provisioner "remote-exec" {
-    script = "${path.module}/../scripts/docker-init-or-join.sh"
-  }
-}

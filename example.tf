@@ -8,18 +8,18 @@ module "docker-swarm" {
   organization="${var.organization}"
   token="${var.token}"
 
-  name="demo terraform"
+  name="demo"
 
-  manager_count=1
-  worker_count=3
-  
   label="demo"
+
+  manager_count=2
+  worker_count=3
 }
 
 resource "null_resource" "nginx" {
   depends_on =["module.docker-swarm"]
   provisioner "local-exec" {
-    command="DOCKER_HOST=${module.docker-swarm.swarm_managers[0]} docker service create --name nginx --replicas 3 --publish 80:80 nginx"
+    command="DOCKER_TLS_VERIFY=1 DOCKER_CERT_PATH=keys/demo/0 DOCKER_HOST=${module.docker-swarm.swarm_managers[0]}:2376 docker service create --name nginx --replicas 1 --publish 80:80 nginx"
   }
 }
 
@@ -29,5 +29,9 @@ output "managers" {
 
 output "workers" {
   value="${module.docker-swarm.swarm_workers}"
+}
+
+output "docker-env" {
+  value="${module.docker-swarm.docker-env}"
 }
 

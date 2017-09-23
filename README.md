@@ -3,9 +3,7 @@
 
 _work in progress_
 
-Still missing a critical security piece: TLS.
-
-This module creates a docker swarm cluster.
+This module creates a docker swarm cluster with TLS enabled.
 
 Future plan is to create a docker swarm cluster on multiple providers.
 
@@ -26,7 +24,7 @@ variable "token" {}
 module "docker-swarm" {
   source="./scaleway" # choose your provider
 
-  name="demo terraform"
+  name="demo"
 
   manager_count=1
   worker_count=3
@@ -38,14 +36,6 @@ module "docker-swarm" {
   token="${var.token}"
 }
 
-# Example service
-resource "null_resource" "nginx" {
-  depends_on =["module.docker-swarm"]
-  provisioner "local-exec" {
-    command="DOCKER_HOST=${module.docker-swarm.swarm_managers[0]} docker service create --name nginx --replicas 3 --publish 80:80 nginx"
-  }
-}
-
 output "managers" {
   value="${module.docker-swarm.swarm_managers}"
 }
@@ -53,7 +43,21 @@ output "managers" {
 output "workers" {
   value="${module.docker-swarm.swarm_workers}"
 }
+
+output "docker-env" {
+   value="${module.docker-swarm.docker-env}"
+}
 ```
+
+You can control the swarm manager with these commands:
+
+```
+$(terraform output docker-env)
+```
+
+This will export properlty DOCKER\_HOST , DOCKER\_TLS\_VERIFY and DOCKER\_CERT\_PATH to securily connect docker to the manager.
+
+It will generate the TLS certs at your local "keys" folder.
 
 ## Providers
 

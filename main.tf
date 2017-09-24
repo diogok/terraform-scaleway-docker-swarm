@@ -25,6 +25,7 @@ locals {
     "C2S"="x86_64"
     "C2M"="x86_64"
     "C2L"="x86_64"
+    # TODO: there is probably a better way to list architecture of machine types
   }
 
   arch="${lookup(local.archs,var.type)}"
@@ -49,13 +50,5 @@ data "scaleway_image" "debian" {
 data "scaleway_bootscript" "mainline" {
   architecture = "${local.arch}"
   name_filter  = "mainline 4.9.49"
-}
-
-output "docker-env" {
-  value =<<EOF
-export DOCKER_HOST=${scaleway_server.swarm_manager.0.public_ip}:2376
-export DOCKER_TLS_VERIFY=1
-export DOCKER_CERT_PATH=keys/${var.name}/${scaleway_server.swarm_manager.0.public_ip}
-EOF
 }
 

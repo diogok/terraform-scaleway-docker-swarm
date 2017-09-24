@@ -31,7 +31,6 @@ resource "null_resource" "swarm_manager" {
     type = "ssh"
     user = "root"
     #private_key = "${var.use_key_file?file(var.key_file):""}"
-    agent = "${var.ssh_agent}"
     host = "${element(scaleway_server.swarm_manager.*.public_ip,count.index)}"
   }
 
@@ -50,14 +49,14 @@ resource "null_resource" "swarm_manager" {
     command=<<EOF
 docker run \
   -v "$PWD/keys/${var.name}/${element(scaleway_server.swarm_manager.*.public_ip,count.index)}:/opt/keys" \
-  -v "$PWD/scripts:/opt/scripts" \
+  -v "${path.module}/scripts:/opt/scripts" \
   centurylink/openssl \
   sh /opt/scripts/create-docker-tls.sh /opt/keys localhost ${element(scaleway_server.swarm_manager.*.public_ip,count.index)} ${element(scaleway_server.swarm_manager.*.private_ip,count.index)}
 EOF
   }
 
   provisioner "remote-exec" {
-    inline=["sudo mkdir -p /opt/keys/manager"]
+    inline=["sudo mkdir -p /opt/keys/manager","sleep 15"]
   }
 
   provisioner "file" {
@@ -71,14 +70,14 @@ EOF
   }
 
   provisioner "remote-exec" {
-    script = "${path.module}/../scripts/limits.sh"
+    script = "${path.module}/scripts/limits.sh"
   }
 
   provisioner "remote-exec" {
-    script = "${path.module}/../scripts/install-docker.sh"
+    script = "${path.module}/scripts/install-docker.sh"
   }
 
   provisioner "remote-exec" {
-    script = "${path.module}/../scripts/docker-init-or-join.sh"
+    script = "${path.module}/scripts/docker-init-or-join.sh"
   }
 }

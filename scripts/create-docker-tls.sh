@@ -10,10 +10,10 @@ STR=4096
 
 DIR=$1
 DOCKER_HOST=$2
-IP=$3
-IP1=$4
+PUBLIC_IP=$3
+PRIVATE_IP=$4
 
-echo " => Using hostname: '$DOCKER_HOST' and IP: '$IP' and IP: '$IP1'. You MUST connect to docker using this host or ip!"
+echo " => Using hostname: '$DOCKER_HOST' and 'swarm_manager' and IP: '$PUBLIC_IP' and IP: '$PRIVATE_IP'. You MUST connect to docker using this host or ip!"
 
 echo " => Ensuring config directory '$DIR' exists..."
 #DIR="$PWD/keys"
@@ -55,7 +55,7 @@ openssl req \
   -out server.csr
 
 echo " => Something about DNS vs IP"
-echo subjectAltName = DNS:$DOCKER_HOST,DNS:swarm_manager,IP:$IP,IP:$IP1,IP:127.0.0.1 > extfile.cnf
+echo subjectAltName = DNS:$DOCKER_HOST,DNS:swarm_manager,IP:$PUBLIC_IP,IP:$PRIVATE_IP,IP:127.0.0.1 > extfile.cnf
 echo extendedKeyUsage = serverAuth >> extfile.cnf
 
 echo " => Signing server CSR with CA"
@@ -95,7 +95,7 @@ openssl x509 \
   -extfile extfile.cnf
 
 echo " =>   You will need to set the following environment variables before running the docker client:"
-echo " =>   DOCKER_HOST=tcp://$DOCKER_HOST:2376"
+echo " =>   DOCKER_HOST=tcp://$PUBLIC_IP:2376"
 echo " =>   DOCKER_TLS_VERIFY=1"
 echo " =>   DOCKER_CERT_PATH=$DIR"
 

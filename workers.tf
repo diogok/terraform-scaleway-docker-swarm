@@ -32,7 +32,6 @@ resource "null_resource" "swarm_worker" {
     type = "ssh"
     user = "root"
     #private_key = "${var.use_key_file?file(var.key_file):""}"
-    agent = "${var.ssh_agent}"
     host = "${element(scaleway_server.swarm_worker.*.public_ip,count.index)}"
   }
 
@@ -57,15 +56,15 @@ resource "null_resource" "swarm_worker" {
   }
 
   provisioner "remote-exec" {
-    script = "${path.module}/../scripts/limits.sh"
+    script = "${path.module}/scripts/limits.sh"
   }
 
   provisioner "remote-exec" {
-    script = "${path.module}/../scripts/install-docker.sh"
+    script = "${path.module}/scripts/install-docker.sh"
   }
 
   provisioner "remote-exec" {
-    script = "${path.module}/../scripts/docker-init-or-join.sh"
+    script = "${path.module}/scripts/docker-init-or-join.sh"
   }
 }
 

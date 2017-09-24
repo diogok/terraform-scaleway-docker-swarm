@@ -2,7 +2,7 @@
 
 set -e
 
-command -v docker && exit 0
+command -v docker && exit 0 # Exit if docker already installed
 
 sudo apt-get update
 

@@ -3,7 +3,8 @@ variable "organization" {}
 variable "token" {}
 
 module "docker-swarm" {
-  source="./scaleway"
+  #source="github.com/diogok/terraform-scaleway-docker-swarm"
+  source="../../"
   
   organization="${var.organization}"
   token="${var.token}"

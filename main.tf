@@ -49,6 +49,6 @@ data "scaleway_image" "debian" {
 
 data "scaleway_bootscript" "mainline" {
   architecture = "${local.arch}"
-  name_filter  = "mainline 4.9.49"
+  name_filter  = "mainline 4.9.60"
 }
 

@@ -68,12 +68,12 @@ variable "label" {
 }
 
 variable "join_existing_swarm" {
-  description="Join an existing swarm cluster instead of initing a new one. Not tested."
+  description="Join an existing swarm cluster instead of initing a new one."
   default=false
 }
 
 variable "existing_swarm_manager" {
-  description="If setup to join an existing swarm cluster instead of initing a new one, this points to the manager node of the existing swarm cluster. Not tested."
+  description="If setup to join an existing swarm cluster instead of initing a new one, this points to the manager node of the existing swarm cluster."
   default=""
 }
 

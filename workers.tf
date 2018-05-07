@@ -1,4 +1,8 @@
 
+locals {
+  manager="${var.join_existing_swarm?var.existing_swarm_manager:element(compact(concat(scaleway_ip.swarm_manager.*.ip,list(var.existing_swarm_manager))),0)}"
+}
+
 resource "scaleway_ip" "swarm_worker" {
   count = "${var.worker_count}"
 }
@@ -31,7 +35,7 @@ resource "null_resource" "swarm_worker" {
   count = "${scaleway_server.swarm_worker.count}"
 
   triggers = {
-    manager_ips = "${join(",",scaleway_ip.swarm_manager.*.ip)}"
+    manager_ips = "${local.manager}"
     worker_ips = "${join(",",scaleway_ip.swarm_worker.*.ip)}"
   }
 
@@ -48,7 +52,7 @@ resource "null_resource" "swarm_worker" {
        ,"echo ${count.index} > /tmp/index"
        ,"echo ${var.label} > /tmp/label"
        ,"echo worker > /tmp/role"
-       ,"echo '${var.join_existing_swarm?var.existing_swarm_manager:scaleway_server.swarm_manager.0.private_ip}' > /tmp/swarm_manager"
+       ,"echo '${local.manager}' > /tmp/swarm_manager"
        ,"echo '$(cat /tmp/swarm_manager) swarm_manager' | sudo tee -a /etc/hosts"
     ]
   }
@@ -58,7 +62,7 @@ resource "null_resource" "swarm_worker" {
   }
 
   provisioner "file" {
-    source="keys/${var.name}/${scaleway_server.swarm_manager.0.public_ip}/"
+    source="keys/${var.name}/${local.manager}/"
     destination="/opt/keys/manager"
   }
 

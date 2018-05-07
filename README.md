@@ -7,7 +7,6 @@ It does not create network security groups, docker access is secured using TLS c
 Still to do:
 
 - Support choosing a key file for ssh. Right now it trusts you local ssh agent.
-- Support joining an existing docker swarm.
 - Support additional volumes.
 - Support bastion hosts to provision instances.
 
@@ -15,9 +14,9 @@ Still to do:
 
 Minimal versions:
 
-- Terraform 0.10.6
+- Terraform 0.11.7
 - Docker engine 17.06.2-ce
-- An scaleway account
+- A scaleway account
 
 ## Usage
 
@@ -64,6 +63,27 @@ $(terraform output docker-env)
 This will export properlty DOCKER\_HOST , DOCKER\_TLS\_VERIFY and DOCKER\_CERT\_PATH to securily connect docker to the manager.
 
 It will generate the TLS certs at your local "keys" folder, on folder for each name and one folder for each IP of a manager. Only manager get docker daemon exposed.
+
+### Joining an existing swarm
+
+```
+module "docker-swarm-2" {
+  source="github.com/diogok/terraform-scaleway-docker-swarm" 
+
+  name="demo"
+
+  manager_count=0
+  worker_count=1
+  
+  label="second=true"
+  
+  organization="${var.organization}"
+  token="${var.token}"
+
+  join_existing_swarm=true
+  existing_swarm_manager="${module.docker-swarm.managers[0]}"
+}
+```
 
 ## License
 

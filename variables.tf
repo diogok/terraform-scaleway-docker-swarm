@@ -17,6 +17,11 @@ variable "type" {
   default="VC1S"
 }
 
+variable "arch" {
+  description="The machine type archtecture."
+  default="x86_64"
+}
+
 variable "name" {
   description="The name of your docker swarm, used for identification and to separate different swarm. Also will be the name of the fold where to store the TLS keys and certificates."
   default="MyService"

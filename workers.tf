@@ -1,5 +1,11 @@
 
+resource "scaleway_ip" "swarm_worker" {
+  count = "${var.worker_count}"
+}
+
 resource "scaleway_server" "swarm_worker" {
+  depends_on=["scaleway_ip.swarm_worker"]
+
   count = "${var.worker_count}"
 
   name  = "${var.name} docker swarm worker ${count.index}"
@@ -11,7 +17,8 @@ resource "scaleway_server" "swarm_worker" {
   tags  = "${concat(local.tags,local.worker_tags)}"
 
   enable_ipv6=true
-  dynamic_ip_required=true
+  #dynamic_ip_required=true
+  public_ip="${element(scaleway_ip.swarm_worker.*.ip,count.index)}"
 
   security_group="${var.security_group}"
 
@@ -24,8 +31,8 @@ resource "null_resource" "swarm_worker" {
   count = "${scaleway_server.swarm_worker.count}"
 
   triggers = {
-    manager_ids = "${join(",",scaleway_server.swarm_manager.*.id)}"
-    workers_ids = "${join(",",scaleway_server.swarm_worker.*.id)}"
+    manager_ips = "${join(",",scaleway_ip.swarm_manager.*.ip)}"
+    worker_ips = "${join(",",scaleway_ip.swarm_worker.*.ip)}"
   }
 
   connection  {

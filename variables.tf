@@ -42,8 +42,13 @@ variable "worker_count" {
   default=3
 }
 
+variable "additional_volume" {
+  description="If we should attach additional volume to instance"
+  default=true
+}
+
 variable "additional_volume_size" {
-  description="Size of an additional volume to attach to the instances. NOT IMPLEMENTED YET."
+  description="Size of an additional volume to attach to the instances."
   default="50"
 }
 

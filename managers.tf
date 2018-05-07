@@ -1,5 +1,11 @@
 
+resource "scaleway_ip" "swarm_manager" {
+  count = "${var.manager_count}"
+}
+
 resource "scaleway_server" "swarm_manager" {
+  depends_on=["scaleway_ip.swarm_manager"]
+
   count = "${var.manager_count}"
 
   name  = "${var.name} docker swarm manager ${count.index}"
@@ -11,7 +17,8 @@ resource "scaleway_server" "swarm_manager" {
   tags  = "${concat(local.tags,local.manager_tags)}"
 
   enable_ipv6=true
-  dynamic_ip_required=true
+  #dynamic_ip_required=true
+  public_ip="${element(scaleway_ip.swarm_manager.*.ip,count.index)}"
 
   security_group="${var.security_group}"
 
@@ -24,7 +31,7 @@ resource "null_resource" "swarm_manager" {
   count = "${scaleway_server.swarm_manager.count}"
 
   triggers = {
-    manager_ids = "${join(",",scaleway_server.swarm_manager.*.id)}"
+    manager_ips = "${join(",",scaleway_ip.swarm_manager.*.ip)}"
   }
 
   connection  {
